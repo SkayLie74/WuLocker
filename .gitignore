@@ -1,0 +1,19 @@
+# Build and output artifacts
+WuLocker.exe
+*.pdb
+bin/
+obj/
+Backup/
+
+# User-specific or temp files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# System or log files
+*.log
+*.tmp
+Thumbs.db
+Desktop.ini
