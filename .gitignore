@@ -1,5 +1,6 @@
 # Build and output artifacts
 WuLocker.exe
+*.zip
 *.pdb
 bin/
 obj/
