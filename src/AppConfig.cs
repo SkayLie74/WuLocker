@@ -14,6 +14,7 @@ namespace WuLocker
         public bool ProcessBlockOptions = true;
         public bool ProcessCloseOptions = true;
         public bool PauseUpdatesOnEnable = false;
+        public bool AllowMicrosoftStore = true;
 
         public string[] Services = DefaultServices();
         public string[] TasksToManage = DefaultTasks();
@@ -36,8 +37,8 @@ namespace WuLocker
 
             if (!File.Exists(iniPath))
             {
-                OperationLog.Info("INI bulunamadi, varsayilan ayarlar kullaniliyor: " + iniPath);
-                return config;
+                OperationLog.Info("INI bulunamadi, varsayilan olusturuluyor: " + iniPath);
+                SaveDefault(iniPath);
             }
 
             config.LockServicesOnBlock = ReadBool(iniPath, "Settings", "LockServicesOnBlock", config.LockServicesOnBlock);
@@ -47,6 +48,7 @@ namespace WuLocker
             config.ProcessBlockOptions = ReadBool(iniPath, "Settings", "ProcessBlockOptions", config.ProcessBlockOptions);
             config.ProcessCloseOptions = ReadBool(iniPath, "Settings", "ProcessCloseOptions", config.ProcessCloseOptions);
             config.PauseUpdatesOnEnable = ReadBool(iniPath, "Settings", "PauseUpdatesOnEnable", config.PauseUpdatesOnEnable);
+            config.AllowMicrosoftStore = ReadBool(iniPath, "Settings", "AllowMicrosoftStore", config.AllowMicrosoftStore);
 
             config.Services = ReadList(iniPath, "Services", "List", DefaultServices());
             config.TasksToManage = ReadList(iniPath, "Tasks", "List", DefaultTasks());
@@ -207,6 +209,12 @@ namespace WuLocker
                 @"Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScanAfterUpdate",
                 @"Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan_LicenseAccepted",
                 @"Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan_OobeAppReady",
+                @"Microsoft\Windows\UpdateOrchestrator\UIEOrchestrator",
+                @"Microsoft\Windows\UpdateOrchestrator\UUS Failover Task",
+                @"Microsoft\Windows\UpdateOrchestrator\Reboot",
+                @"Microsoft\Windows\UpdateOrchestrator\Reboot_AC",
+                @"Microsoft\Windows\UpdateOrchestrator\Reboot_Battery",
+                @"Microsoft\Windows\UpdateOrchestrator\Backup Scan",
                 @"Microsoft\Windows\WaaSMedic\PerformRemediation"
             };
         }
@@ -230,6 +238,49 @@ namespace WuLocker
         public static string[] DefaultImagePathServices()
         {
             return new string[] { "wuauserv", "dosvc", "WaaSMedicSvc", "UsoSvc" };
+        }
+
+        public static void SaveDefault(string iniPath)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("; WuLocker Configuration File");
+                sb.AppendLine();
+                sb.AppendLine("[Settings]");
+                sb.AppendLine("Language=Auto");
+                sb.AppendLine("LockServicesOnBlock=1");
+                sb.AppendLine("SetTaskScheduler=1");
+                sb.AppendLine("SetRegNoTrayIcon=1");
+                sb.AppendLine("SetImagePath=1");
+                sb.AppendLine("ProcessBlockOptions=1");
+                sb.AppendLine("ProcessCloseOptions=1");
+                sb.AppendLine("PauseUpdatesOnEnable=0");
+                sb.AppendLine("AllowMicrosoftStore=1");
+                sb.AppendLine();
+                sb.AppendLine("[Services]");
+                sb.AppendLine("List=" + string.Join(",", DefaultServices()));
+                sb.AppendLine();
+                sb.AppendLine("[Tasks]");
+                sb.AppendLine("List=" + string.Join(",", DefaultTasks()));
+                sb.AppendLine();
+                sb.AppendLine("[BlockProcesses]");
+                sb.AppendLine("List=" + string.Join(",", DefaultBlockProcesses()));
+                sb.AppendLine();
+                sb.AppendLine("[CloseProcesses]");
+                sb.AppendLine("List=" + string.Join(",", DefaultCloseProcesses()));
+                sb.AppendLine();
+                sb.AppendLine("[ImagePathServices]");
+                sb.AppendLine("List=" + string.Join(",", DefaultImagePathServices()));
+                sb.AppendLine();
+
+                File.WriteAllText(iniPath, sb.ToString(), Encoding.Unicode);
+                OperationLog.Info("Varsayilan INI dosyasi olusturuldu: " + iniPath);
+            }
+            catch (Exception ex)
+            {
+                OperationLog.Error("Varsayilan INI dosyasi olusturulamadi.", ex);
+            }
         }
     }
 }

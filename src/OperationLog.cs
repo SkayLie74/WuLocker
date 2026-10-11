@@ -65,10 +65,28 @@ namespace WuLocker
             Write("ERROR", message, ex);
         }
 
+        // Y-6: log rotasyonu — dosya 5 MB'ı aşarsa sıfırdan başlat
+        private static void RotateLogIfLarge()
+        {
+            try
+            {
+                FileInfo fi = new FileInfo(logPath);
+                if (fi.Exists && fi.Length > 5L * 1024L * 1024L)
+                {
+                    File.Delete(logPath);
+                }
+            }
+            catch
+            {
+            }
+        }
+
         private static void Write(string level, string message, Exception ex)
         {
             try
             {
+                RotateLogIfLarge();
+
                 StringBuilder line = new StringBuilder();
                 line.Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 line.Append(" [");
@@ -96,6 +114,11 @@ namespace WuLocker
 
         public static ProcessRunResult RunProcess(string fileName, string arguments, int timeoutMs)
         {
+            return RunProcess(fileName, arguments, timeoutMs, null);
+        }
+
+        public static ProcessRunResult RunProcess(string fileName, string arguments, int timeoutMs, Action<string> onOutputLine)
+        {
             ProcessRunResult result = new ProcessRunResult();
             result.FileName = fileName;
             result.Arguments = arguments;
@@ -122,6 +145,10 @@ namespace WuLocker
                         if (e.Data != null)
                         {
                             output.AppendLine(e.Data);
+                            if (onOutputLine != null)
+                            {
+                                try { onOutputLine(e.Data); } catch { }
+                            }
                         }
                     };
                     process.ErrorDataReceived += delegate(object sender, DataReceivedEventArgs e)
@@ -129,6 +156,10 @@ namespace WuLocker
                         if (e.Data != null)
                         {
                             error.AppendLine(e.Data);
+                            if (onOutputLine != null)
+                            {
+                                try { onOutputLine(e.Data); } catch { }
+                            }
                         }
                     };
 

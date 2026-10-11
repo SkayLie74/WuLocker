@@ -17,3 +17,10 @@ Backup/
 *.tmp
 Thumbs.db
 Desktop.ini
+
+# Agent and workspace local files
+AGENTS.md
+.freebuff/
+scratch/
+docs/audit-report.md
+
